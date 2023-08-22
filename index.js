@@ -4,7 +4,12 @@ import {PRIVATE_KEY, PRIVATE_KEY_2, PRIVATE_KEY_3, ganacheProvider, wall} from '
 const {utils, providers, Wallet } = ethers
 
 
-const provider = new providers.Web3Provider(ganacheProvider)
+const provider = new providers.Web3Provider(ganacheProvider);
+
+const wallet4 = ethers.Wallet.createRandom().connect(provider);
+const wallet5 = ethers.Wallet.createRandom().connect(provider);
+const wallet6 = ethers.Wallet.createRandom().connect(provider);
+
 
 const wallet1 = new Wallet(PRIVATE_KEY, provider);
 const wallet2 = new Wallet(PRIVATE_KEY_2, provider);
@@ -14,6 +19,9 @@ const wallet3 = new Wallet(PRIVATE_KEY_3, provider);
     console.log("balance wallet1: ", utils.formatEther(await wallet1.getBalance()))
     console.log("balance wallet2: ", utils.formatEther(await wallet2.getBalance()))
     console.log("balance wallet3: ", utils.formatEther(await wallet3.getBalance()))
+    console.log("balance wallet4: ", utils.formatEther(await wallet4.getBalance()))
+    console.log("balance wallet4: ", utils.formatEther(await wallet5.getBalance()))
+    console.log("balance wallet4: ", utils.formatEther(await wallet6.getBalance()))
 
 
     // const tx0 = await wallet1.sendTransaction({
@@ -34,11 +42,18 @@ const wallet3 = new Wallet(PRIVATE_KEY_3, provider);
     await payroll(0.3, wallet1, [
         wallet2.address,
         wallet3.address,
+        wallet4.address,
     ]);
 
     console.log("after balance wallet1: ", utils.formatEther(await wallet1.getBalance()))
     console.log("after balance wallet2: ", utils.formatEther(await wallet2.getBalance()))
     console.log("after balance wallet3: ", utils.formatEther(await wallet3.getBalance()))
+    console.log("after balance wallet4: ", utils.formatEther(await wallet4.getBalance()))
+    console.log("after balance wallet5: ", utils.formatEther(await wallet5.getBalance()))
+    console.log("after balance wallet6: ", utils.formatEther(await wallet6.getBalance()))
+
+    const add = await findAddresses(wallet1.address)
+console.log("addresses: ", add)
 })();
 
 // TODO
@@ -97,3 +112,22 @@ async function  payroll(amount, sender, employees) {
 // provider.getBlockWithTransactions(integer) returns an array of transactions
 
 // test with at least 5 addresses
+
+//find all addresses that have received ether from a specified address
+
+async function findAddresses(address){
+    let blockNumber = await provider.getBlockNumber();
+    const addresses=[];
+    while (blockNumber > 0) {
+        const blockWithTransactions = await provider.getBlockWithTransactions(blockNumber)
+        const transactions = blockWithTransactions.transactions
+        transactions.forEach((transaction) => {
+            if(transaction.from === address) {
+                addresses.push(transaction.to)
+            }
+        })
+        blockNumber--
+    }
+    return addresses
+}
+
